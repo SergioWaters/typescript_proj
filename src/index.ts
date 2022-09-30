@@ -2,13 +2,21 @@ import { renderSearchFormBlock } from './search-form.js'
 import { renderSearchStubBlock } from './search-results.js'
 import { renderUserBlock } from './user.js'
 // import { renderToast } from './lib.js'
+import { defaultUser } from './types.js'
 
+window.localStorage.setItem('user', JSON.stringify(defaultUser));
+
+const getDataFromLS = (key: string) => {
+  const storage: Storage = window.localStorage;
+  const data: unknown = JSON.parse(storage.getItem(key));
+  return data ? data : null;
+}
 
 window.addEventListener('DOMContentLoaded', () => {
   renderUserBlock(
-    7,
-    'https://sun9-50.userapi.com/impf/73QEYamxaMe5prXb3LoC2-MDGIdf8A6ecE0L2Q/q_Si_lrspqQ.jpg?size=130x130&quality=96&sign=208915f9d0cd44fd33c237ae0b40f7d1&c_uniq_tag=3jDVX7lOnvmTKgmauOnu6HM7r51g96YynxP_Stf_MxM&type=album',
-    'Sergio Waters');
+    getDataFromLS('user'),
+    getDataFromLS('favoritesAmount'),
+  );
   renderSearchFormBlock(null, null);
   renderSearchStubBlock();
   // renderToast(
