@@ -31,3 +31,14 @@ export function renderToast(message, action) {
   }
 }
 
+export const getDataFromLS = (key: string) => {
+  const storage: Storage = window.localStorage;
+  const data: unknown = JSON.parse(storage.getItem(key));
+  return data ? data : null;
+}
+
+export const setDataToLS = (key: string, val: unknown) => {
+  const storage: Storage = window.localStorage;
+  const data: string = JSON.stringify(val)
+  storage.setItem(key, data);
+}
