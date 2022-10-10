@@ -11,10 +11,27 @@ export const defaultUser: User = {
 }
 
 export interface SearchFormData {
-  checkin: string,
-  checkout: string,
-  maxprice: string,
+  checkInDate: Date,
+  checkOutDate: Date,
   city: string,
+  priceLimit: number,
 }
 
-export interface Place { '' }
+export interface Place {
+  id: string,
+  title: string,
+  details: string,
+  photos: string[],
+  coordinates: number[],
+  bookedDates: string[],
+  price: number,
+  totalPrice: number
+}
+
+export const isPlace = (user: User | unknown): user is User => (<User>user).userName !== undefined;
+
+export interface favoriteItem {
+  id: string,
+  photo: string,
+  title: string
+}

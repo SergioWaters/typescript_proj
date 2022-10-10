@@ -1,6 +1,40 @@
-import { renderBlock } from './lib.js'
+/* eslint-disable indent */
+import { Place } from './types.js'
+import { getDataFromLS, setDataToLS, renderBlock } from './lib.js'
+import { renderUserBlock } from './user.js';
 
-export function renderSearchStubBlock () {
+const isFav = (id: string): boolean => {
+  const favsObj = getDataFromLS('favoritesAmount');
+  return (favsObj?.[id] instanceof Object) ? true : false;
+}
+
+const favHandler = (event: Event) => {
+  event.stopPropagation();
+  let favsObj = getDataFromLS('favoritesAmount') || {};
+
+  if (event.target instanceof HTMLElement && favsObj instanceof Object) {
+    const fav: HTMLElement = event.target;
+
+    if (fav.id in favsObj) {
+      delete favsObj[fav.id]
+      fav.classList.remove('active')
+    } else {
+      favsObj = {
+        ...favsObj,
+        [fav.id]: {
+          id: fav.id,
+          photo: fav.dataset.photo,
+          title: fav.dataset.title
+        }
+      }
+      fav.classList.add('active')
+    }
+    renderUserBlock(getDataFromLS('user'), favsObj)
+    setDataToLS('favoritesAmount', favsObj)
+  }
+}
+
+export function renderSearchStubBlock() {
   renderBlock(
     'search-results-block',
     `
@@ -12,7 +46,7 @@ export function renderSearchStubBlock () {
   )
 }
 
-export function renderEmptyOrErrorSearchBlock (reasonMessage) {
+export function renderEmptyOrErrorSearchBlock(reasonMessage: string) {
   renderBlock(
     'search-results-block',
     `
@@ -24,7 +58,43 @@ export function renderEmptyOrErrorSearchBlock (reasonMessage) {
   )
 }
 
-export function renderSearchResultsBlock () {
+export function renderSearchResult(place: Place, isFav: boolean) {
+  return `
+      <li class="result">
+        <div class="result-container">
+          <div class="result-img-container">
+            <div class="favorites ${isFav ? 'active' : ''}" 
+              id="${place.id}" 
+              data-photo="${place.photos[0]}" 
+              data-title="${place.title}">
+            </div>
+            <img class="result-img" 
+              src="${place.photos[0] || './img/result-1.png'}" 
+              alt="${place.title}"
+            >
+          </div>	
+          <div class="result-info">
+            <div class="result-info--header">
+              <p>${place.title || 'no title'}</p>
+              <p class="price">${place.totalPrice}&#8381</p>
+            </div>
+            <div class="result-info--map">${place.coordinates}<i class="map-icon"></i> 2.5км от вас</div>
+            <div class="result-info--descr">${place.details}</div>
+            <div class="result-info--footer">
+              <div>
+                <button
+                  class="button"
+                  id="${place.id}"
+                >Забронировать</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>`
+}
+
+export function renderSearchResultsBlock(resultsArr: Place[] | unknown) {
+
   renderBlock(
     'search-results-block',
     `
@@ -39,50 +109,13 @@ export function renderSearchResultsBlock () {
             </select>
         </div>
     </div>
-    <ul class="results-list">
-      <li class="result">
-        <div class="result-container">
-          <div class="result-img-container">
-            <div class="favorites active"></div>
-            <img class="result-img" src="./img/result-1.png" alt="">
-          </div>	
-          <div class="result-info">
-            <div class="result-info--header">
-              <p>YARD Residence Apart-hotel</p>
-              <p class="price">13000&#8381;</p>
-            </div>
-            <div class="result-info--map"><i class="map-icon"></i> 2.5км от вас</div>
-            <div class="result-info--descr">Комфортный апарт-отель в самом сердце Санкт-Петербрга. К услугам гостей номера с видом на город и бесплатный Wi-Fi.</div>
-            <div class="result-info--footer">
-              <div>
-                <button>Забронировать</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </li>
-      <li class="result">
-        <div class="result-container">
-          <div class="result-img-container">
-            <div class="favorites"></div>
-            <img class="result-img" src="./img/result-2.png" alt="">
-          </div>	
-          <div class="result-info">
-            <div class="result-info--header">
-              <p>Akyan St.Petersburg</p>
-              <p class="price">13000&#8381;</p>
-            </div>
-            <div class="result-info--map"><i class="map-icon"></i> 1.1км от вас</div>
-            <div class="result-info--descr">Отель Akyan St-Petersburg с бесплатным Wi-Fi на всей территории расположен в историческом здании Санкт-Петербурга.</div>
-            <div class="result-info--footer">
-              <div>
-                <button>Забронировать</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </li>
+    <ul class="results-list">      
+  ${resultsArr instanceof Array<Place> ?
+      resultsArr.map(p => renderSearchResult(p, isFav(p.id))).join('') :
+      '<h1>Something is wrong with recieved data</h1>'
+    }
     </ul>
     `
   )
+  document.querySelectorAll('.favorites').forEach(heart => heart.addEventListener('click', (e: Event) => favHandler(e)))
 }
